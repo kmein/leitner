@@ -5,8 +5,6 @@ use std::path::Path;
 use std::collections::VecDeque;
 use uuid::Uuid;
 
-const DATA_FILE: &str = "flashcards.json";
-
 const CARD_THICKNESS_MM: f32 = 0.5;
 
 const CARDS_PER_CM: usize = (10 as f32 / CARD_THICKNESS_MM) as usize;
@@ -71,9 +69,9 @@ impl Deck {
     }
   }
 
-  pub fn load() -> io::Result<Self> {
-    if Path::new(DATA_FILE).exists() {
-      let file = File::open(DATA_FILE)?;
+  pub fn load(path: &Path) -> io::Result<Self> {
+    if path.exists() {
+      let file = File::open(path)?;
       let reader = BufReader::new(file);
       Ok(serde_json::from_reader(reader)?)
     } else {
@@ -81,8 +79,8 @@ impl Deck {
     }
   }
 
-  pub fn save(&self) -> io::Result<()> {
-    let file = File::create(DATA_FILE)?;
+  pub fn save(&self, path: &Path) -> io::Result<()> {
+    let file = File::create(path)?;
     let writer = BufWriter::new(file);
     serde_json::to_writer_pretty(writer, self)?;
     Ok(())
@@ -100,9 +98,12 @@ impl Deck {
 
   pub fn process(&mut self, queue: usize, did_know: bool) {
     let card = self.queues[queue].cards.pop_front().expect("Hä?");
-    self.queues[
-      if did_know { queue+1 } else { 0 }
-    ].cards.push_back(card);
+    if !did_know {
+      self.queues[0].cards.push_back(card)
+    } else if queue < self.queues.len()  - 1 {
+      self.queues[queue+1].cards.push_back(card)
+    }
+    // else (if alread on queue 5): do not add the card back i.e. delete it
   }
 
   pub fn get_next_queue(&self) -> Option<usize> {

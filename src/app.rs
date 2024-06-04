@@ -1,4 +1,5 @@
 use crate::leitner::Deck;
+use std::path::Path;
 use std::io;
 
 pub enum CurrentScreen {
@@ -13,13 +14,20 @@ pub struct App {
 }
 
 impl App {
-  pub fn new() -> io::Result<App> {
-    let deck = Deck::load()?;
+  pub fn new(path: &Path) -> io::Result<App> {
+    let deck = Deck::load(path)?;
     let current_queue = deck.get_next_queue();
     Ok(App {
       deck,
       current_queue,
       current_screen: CurrentScreen::Asking,
     })
+  }
+
+  pub fn process(&mut self, did_know: bool) {
+    if let Some(queue) = self.current_queue {
+      self.deck.process(queue, did_know);
+      self.current_queue = self.deck.get_next_queue();
+    }
   }
 }

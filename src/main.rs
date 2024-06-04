@@ -1,4 +1,5 @@
 use crate::{app::{App, CurrentScreen}, ui::ui};
+use std::path::Path;
 mod app;
 mod ui;
 mod leitner;
@@ -16,7 +17,7 @@ use ratatui::{
 
 fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<bool> {
   loop {
-    terminal.draw(|f| ui(f, app));
+    let _ = terminal.draw(|f| ui(f, app));
 
     if let Event::Key(key) = event::read()? {
       if key.kind == KeyEventKind::Release {
@@ -35,10 +36,10 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
             match key.code {
               KeyCode::Char('q') => return Ok(true),
               KeyCode::Char('y') => {
-                app.deck.process(current_queue, true)
+                app.process(true)
               },
               KeyCode::Char('n') => {
-                app.deck.process(current_queue, false)
+                app.process(false)
               },
               _ => {}
             };
@@ -52,13 +53,15 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
+  let path = Path::new("flashcards.json");
+
   enable_raw_mode()?;
   let mut stderr = io::stderr();
   execute!(stderr, EnterAlternateScreen, EnableMouseCapture)?;
 
   let backend = CrosstermBackend::new(stderr);
   let mut terminal = Terminal::new(backend)?;
-  let mut app = App::new()?;
+  let mut app = App::new(path)?;
 
   let res = run_app(&mut terminal, &mut app);
 
@@ -70,8 +73,8 @@ fn main() -> Result<(), Box<dyn Error>> {
   )?;
   terminal.show_cursor()?;
 
-  if let Ok(do_print) = res {
-    app.deck.save();
+  if let Ok(_) = res {
+    let _ = app.deck.save(path);
   } else if let Err(err) = res {
       println!("{err:?}");
   }
