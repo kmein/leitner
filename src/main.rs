@@ -1,9 +1,10 @@
-use crate::{app::{App, CurrentScreen}, ui::ui};
-use std::path::Path;
 mod app;
 mod ui;
 mod leitner;
 
+use crate::{app::{App, CurrentScreen}, ui::ui};
+use std::path::Path;
+use clap::Parser;
 use std::{error::Error, io};
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEventKind},
@@ -14,6 +15,13 @@ use ratatui::{
     backend::{Backend, CrosstermBackend},
     Terminal,
 };
+
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    deck_path: String,
+}
+
 
 fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<bool> {
   loop {
@@ -53,7 +61,8 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-  let path = Path::new("flashcards.json");
+  let cli = Args::parse();
+  let path = Path::new(&cli.deck_path);
 
   enable_raw_mode()?;
   let mut stderr = io::stderr();
