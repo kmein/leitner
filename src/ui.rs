@@ -24,7 +24,7 @@ pub fn ui(f: &mut Frame, app: &App) {
     .style(Style::default());
 
   let title = Paragraph::new(Text::styled(
-      "Create New Json",
+      &app.file_name,
       Style::default().fg(Color::Green),
       ))
     .block(title_block);

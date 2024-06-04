@@ -8,6 +8,7 @@ pub enum CurrentScreen {
 }
 
 pub struct App {
+  pub file_name: String,
   pub deck: Deck,
   pub current_queue: Option<usize>,
   pub current_screen: CurrentScreen,
@@ -18,6 +19,7 @@ impl App {
     let deck = Deck::load(path)?;
     let current_queue = deck.get_next_queue();
     Ok(App {
+      file_name: path.to_str().expect("Hä?").to_string(),
       deck,
       current_queue,
       current_screen: CurrentScreen::Asking,
