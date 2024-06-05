@@ -47,21 +47,32 @@ fn card_front_ui(app: &App) -> Paragraph {
     }
 }
 
+fn key_info_ui(key: char, gloss: &str) -> Vec<Span> {
+    vec![
+        Span::styled(format!("({})", key), Style::default().fg(Color::Yellow)),
+        Span::styled(format!(" {} ", gloss), Style::default()),
+    ]
+}
+
 fn current_keys_ui(app: &App) -> Paragraph {
-    let current_keys_hint = match (&app.current_screen, app.current_queue) {
+    let mut spans = Vec::new();
+    match (&app.current_screen, app.current_queue) {
         (_, None) => {
             if app.deck.can_refill() {
-                Span::styled("(r) refill (q) quit", Style::default())
-            } else {
-                Span::styled("(q) quit", Style::default())
-            }
+                spans.append(&mut key_info_ui('r', "refill"));
+            };
+            spans.append(&mut key_info_ui('q', "quit"))
         }
-        (CurrentScreen::Asking, Some(_)) => Span::styled("Do you know this?", Style::default()),
+        (CurrentScreen::Asking, Some(_)) => {
+            spans.push(Span::styled("Do you know this?", Style::default()))
+        }
         (CurrentScreen::Checking, Some(_)) => {
-            Span::styled("Did you know this? (y) yes (n) no", Style::default())
+            spans.push(Span::styled("Did you know this?", Style::default()));
+            spans.append(&mut key_info_ui('y', "yes"));
+            spans.append(&mut key_info_ui('n', "no"));
         }
     };
-    Paragraph::new(Line::from(current_keys_hint)).block(Block::default().borders(Borders::ALL))
+    Paragraph::new(Line::from(spans)).block(Block::bordered())
 }
 
 fn deck_overview_ui(app: &App) -> Paragraph {
