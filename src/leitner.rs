@@ -131,12 +131,8 @@ impl Deck {
     }
 
     pub fn get_next_queue(&self) -> Option<usize> {
-        if self.queues[0].cards.len() > 3 {
-            Some(0)
-        } else {
-            self.queues
-                .iter()
-                .position(|q| q.free_space() < CARDS_PER_CM)
-        }
+        self.queues
+            .iter()
+            .position(|q| q.cards.len() > 3 && q.free_space() < CARDS_PER_CM)
     }
 }
