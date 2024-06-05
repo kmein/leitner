@@ -24,12 +24,11 @@ use std::{error::Error, io};
 struct Args {
     deck_path: String,
     #[command(subcommand)]
-    command: Command,
+    command: Option<Command>,
 }
 
 #[derive(Subcommand, Debug)]
 enum Command {
-    Learn,
     Import { csv_path: String },
 }
 
@@ -43,7 +42,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                 continue;
             }
             match app.current_queue {
-                Some(current_queue) => match app.current_screen {
+                Some(_current_queue) => match app.current_screen {
                     CurrentScreen::Asking => match key.code {
                         KeyCode::Char('q') => return Ok(()),
                         _ => {
@@ -98,12 +97,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut app = App::new(path)?;
 
     match cli.command {
-        Command::Learn => {
+        None => {
             if let Err(err) = learn(&mut app) {
                 println!("{err:?}");
             }
         }
-        Command::Import { csv_path } => {
+        Some(Command::Import { csv_path }) => {
             if let Ok(imported) = app.deck.import(Path::new(&csv_path)) {
                 println!("Imported {} cards.", imported)
             }
