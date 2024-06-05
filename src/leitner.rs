@@ -115,7 +115,7 @@ impl Deck {
     pub fn save(&self, path: &Path) -> io::Result<()> {
         let file = File::create(path)?;
         let writer = BufWriter::new(file);
-        serde_json::to_writer_pretty(writer, self)?;
+        serde_json::to_writer(writer, self)?;
         Ok(())
     }
 
