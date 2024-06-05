@@ -91,15 +91,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut app = App::new(path)?;
 
     match cli.command {
-        None => {
-            if let Err(err) = learn(&mut app) {
-                println!("{err:?}");
-            }
-        }
+        None => learn(&mut app)?,
         Some(Command::Import { csv_path }) => {
-            if let Ok(imported) = app.deck.import(Path::new(&csv_path)) {
-                println!("Imported {} cards.", imported)
-            }
+            let imported = app.deck.import(Path::new(&csv_path))?;
+            println!("Imported {} cards.", imported)
         }
     };
 
