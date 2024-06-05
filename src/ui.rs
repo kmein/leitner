@@ -30,23 +30,6 @@ fn message_ui(string: String, optional_color: Option<Color>) -> Paragraph<'stati
     Paragraph::new(Line::styled(string, style).centered())
 }
 
-fn card_front_ui(app: &App) -> Paragraph {
-    match app.current_queue {
-        Some(queue) => match app.deck.queues[queue].get_next_card() {
-            Some(card) => card_ui(card.front.to_string()),
-            None => message_ui("Something went wrong.".to_string(), Some(Color::Red)),
-        },
-        None if app.deck.can_refill() => {
-            let message = format!(
-                "There are {} new cards available. Do you want to refill?",
-                app.deck.stash_size()
-            );
-            message_ui(message, Some(Color::Yellow))
-        }
-        None => message_ui("Nothing to learn.".to_string(), Some(Color::Yellow)),
-    }
-}
-
 fn key_info_ui(key: char, gloss: &str) -> Vec<Span> {
     vec![
         Span::styled(format!("({})", key), Style::default().fg(Color::Yellow)),
@@ -67,7 +50,7 @@ fn current_keys_ui(app: &App) -> Paragraph {
             spans.push(Span::styled("Do you know this?", Style::default()))
         }
         (CurrentScreen::Checking, Some(_)) => {
-            spans.push(Span::styled("Did you know this?", Style::default()));
+            spans.push(Span::styled("Did you know this? ", Style::default()));
             spans.append(&mut key_info_ui('y', "yes"));
             spans.append(&mut key_info_ui('n', "no"));
         }
@@ -94,6 +77,7 @@ fn deck_overview_ui(app: &App) -> Paragraph {
 }
 
 pub fn ui(f: &mut Frame, app: &App) {
+    // create the layout
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -109,20 +93,37 @@ pub fn ui(f: &mut Frame, app: &App) {
     let card_back = chunks[2];
     let footer = chunks[3];
 
-    f.render_widget(header_ui(app), header);
-    f.render_widget(card_front_ui(app), card_front);
-
-    if let (CurrentScreen::Checking, Some(queue)) = (&app.current_screen, app.current_queue) {
-        if let Some(card) = app.deck.queues[queue].get_next_card() {
-            f.render_widget(card_ui(card.back.to_string()), card_back);
-        }
-    }
-
     let footer_chunks = Layout::default()
         .direction(Direction::Horizontal)
         .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
         .split(footer);
 
-    f.render_widget(current_keys_ui(&app), footer_chunks[0]);
-    f.render_widget(deck_overview_ui(&app), footer_chunks[1]);
+    let footer_left = footer_chunks[0];
+    let footer_right = footer_chunks[1];
+
+    // render the layout
+    f.render_widget(header_ui(app), header);
+    f.render_widget(current_keys_ui(&app), footer_left);
+    f.render_widget(deck_overview_ui(&app), footer_right);
+
+    match app.current_queue.and_then(|q| app.deck.queues[q].get_next_card()) {
+        Some(card) => {
+            f.render_widget(card_ui(card.front.to_string()), card_front);
+            if app.current_screen == CurrentScreen::Checking {
+                f.render_widget(card_ui(card.back.to_string()), card_back);
+            }
+        }
+        None if app.deck.can_refill() => {
+            let message_string = format!(
+                "There are {} new cards available. Do you want to refill?",
+                app.deck.stash_size()
+            );
+            let message = message_ui(message_string, Some(Color::Yellow));
+            f.render_widget(message, card_front)
+        }
+        None => {
+            let message = message_ui("Nothing to learn.".to_string(), Some(Color::Yellow));
+            f.render_widget(message, card_front)
+        }
+    }
 }

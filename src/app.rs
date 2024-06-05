@@ -2,6 +2,7 @@ use crate::leitner::Deck;
 use std::io;
 use std::path::Path;
 
+#[derive(PartialEq)]
 pub enum CurrentScreen {
     Asking,
     Checking,
