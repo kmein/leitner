@@ -19,7 +19,7 @@ use ratatui::{
 use std::path::Path;
 use std::{error::Error, io};
 
-#[derive(Parser, Debug)]
+#[derive(Parser)]
 #[command(version, about, long_about = None)]
 struct Args {
     deck_path: String,
@@ -27,7 +27,7 @@ struct Args {
     command: Option<Command>,
 }
 
-#[derive(Subcommand, Debug)]
+#[derive(Subcommand)]
 enum Command {
     Import { csv_path: String },
 }
@@ -41,26 +41,20 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                 // Skip events that are not KeyEventKind::Press
                 continue;
             }
-            match app.current_queue {
-                Some(_current_queue) => match app.current_screen {
-                    CurrentScreen::Asking => match key.code {
-                        KeyCode::Char('q') => return Ok(()),
-                        _ => {
-                            app.current_screen = CurrentScreen::Checking;
-                        }
-                    },
-                    CurrentScreen::Checking => {
-                        match key.code {
-                            KeyCode::Char('q') => return Ok(()),
-                            KeyCode::Char('y') => app.process(true),
-                            KeyCode::Char('n') => app.process(false),
-                            _ => {}
-                        };
-                        app.current_screen = CurrentScreen::Asking;
-                    }
-                },
-                None => match key.code {
-                    KeyCode::Char('q') => return Ok(()),
+            if key.code == KeyCode::Char('q') {
+                return Ok(());
+            }
+            match (&app.current_screen, app.current_queue) {
+                (CurrentScreen::Asking, Some(_)) => app.current_screen = CurrentScreen::Checking,
+                (CurrentScreen::Checking, Some(_)) => {
+                    match key.code {
+                        KeyCode::Char('y') => app.process(true),
+                        KeyCode::Char('n') => app.process(false),
+                        _ => {}
+                    };
+                    app.current_screen = CurrentScreen::Asking;
+                }
+                (_, None) => match key.code {
                     KeyCode::Char('r') => app.refill(),
                     _ => {}
                 },
