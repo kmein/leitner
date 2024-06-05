@@ -42,6 +42,7 @@ impl Queue {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Deck {
     stash: Vec<Card>,
+    done: Vec<Card>,
     pub queues: Vec<Queue>,
 }
 
@@ -56,6 +57,7 @@ impl Deck {
                 Queue::new(14),
             ],
             stash: Vec::new(),
+            done: Vec::new(),
         }
     }
 
@@ -115,8 +117,9 @@ impl Deck {
             self.queues[0].cards.push_back(card)
         } else if queue < self.queues.len() - 1 {
             self.queues[queue + 1].cards.push_back(card)
+        } else {
+            self.done.push(card)
         }
-        // else (if alread on queue 5): do not add the card back i.e. delete it
     }
 
     pub fn get_next_queue(&self) -> Option<usize> {
