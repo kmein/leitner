@@ -11,7 +11,7 @@ use crate::app::{App, CurrentScreen};
 fn header_ui(app: &App) -> Paragraph {
     Paragraph::new(Line::styled(
         &app.file_name,
-        Style::default().fg(Color::Green),
+        Style::default().fg(Color::Cyan),
     ))
     .block(Block::bordered())
 }
@@ -70,11 +70,10 @@ fn deck_overview_ui(app: &App) -> Paragraph {
             .queues
             .iter()
             .enumerate()
-            .map(|(index, q)| {
-                let style = if app.current_queue == Some(index) {
-                    Style::default().fg(Color::Green)
-                } else {
-                    Style::default()
+            .map(|(i, q)| {
+                let style = match app.current_queue {
+                    Some(index) if index == i => Style::default().fg(Color::Cyan),
+                    _ => Style::default(),
                 };
                 Span::styled(format!("{} ", q.cards.len()), style)
             })
