@@ -1,7 +1,7 @@
 use ratatui::{
     layout::{Constraint, Direction, Layout},
     style::{Color, Style},
-    text::{Line, Span, Text},
+    text::{Line, Span},
     widgets::{Block, Borders, Paragraph, Wrap},
     Frame,
 };
@@ -23,7 +23,7 @@ pub fn ui(f: &mut Frame, app: &App) {
         .borders(Borders::ALL)
         .style(Style::default());
 
-    let title = Paragraph::new(Text::styled(
+    let title = Paragraph::new(Line::styled(
         &app.file_name,
         Style::default().fg(Color::Green),
     ))
@@ -33,25 +33,17 @@ pub fn ui(f: &mut Frame, app: &App) {
 
     let widget = match app.current_queue {
         None => Paragraph::new(
-            Line::from(Span::styled(
-                "Nothing to learn",
-                Style::default().fg(Color::Yellow),
-            ))
-            .centered(),
+            Line::styled("Nothing to learn", Style::default().fg(Color::Yellow)).centered(),
         ),
         Some(queue) => {
             if let Some(card) = app.deck.queues[queue].get_next_card() {
-                let front = Span::styled(card.front.to_string(), Style::default());
-                Paragraph::new(Line::from(front).centered())
+                Paragraph::new(Line::styled(card.front.to_string(), Style::default()).centered())
                     .block(Block::default().borders(Borders::ALL))
                     .wrap(Wrap { trim: false })
             } else {
                 Paragraph::new(
-                    Line::from(Span::styled(
-                        "Something went wrong",
-                        Style::default().fg(Color::Red),
-                    ))
-                    .centered(),
+                    Line::styled("Something went wrong", Style::default().fg(Color::Red))
+                        .centered(),
                 )
             }
         }
@@ -62,9 +54,9 @@ pub fn ui(f: &mut Frame, app: &App) {
     match (&app.current_screen, app.current_queue) {
         (CurrentScreen::Checking, Some(queue)) => {
             if let Some(card) = app.deck.queues[queue].get_next_card() {
-                let back = Span::styled(card.back.to_string(), Style::default());
+                let back = card.back.to_string();
                 f.render_widget(
-                    Paragraph::new(Line::from(back).centered())
+                    Paragraph::new(Line::styled(back, Style::default()).centered())
                         .block(Block::default().borders(Borders::ALL))
                         .wrap(Wrap { trim: false }),
                     chunks[2],
