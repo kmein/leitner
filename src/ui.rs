@@ -32,9 +32,19 @@ pub fn ui(f: &mut Frame, app: &App) {
     f.render_widget(title, chunks[0]);
 
     let widget = match app.current_queue {
-        None => Paragraph::new(
-            Line::styled("Nothing to learn", Style::default().fg(Color::Yellow)).centered(),
-        ),
+        None => {
+            let message = if app.deck.can_refill() {
+                format!(
+                    "There are {} new cards available. Do you want to refill?",
+                    app.deck.stash_size()
+                )
+            } else {
+                "Nothing to learn.".to_string()
+            };
+            Paragraph::new(
+                Line::styled(message.clone(), Style::default().fg(Color::Yellow)).centered(),
+            )
+        }
         Some(queue) => {
             if let Some(card) = app.deck.queues[queue].get_next_card() {
                 Paragraph::new(Line::styled(card.front.to_string(), Style::default()).centered())

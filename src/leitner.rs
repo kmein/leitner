@@ -77,14 +77,18 @@ impl Deck {
 
     pub fn import(&mut self, csv_path: &Path) -> io::Result<usize> {
         if csv_path.exists() {
+            println!("loading from csv");
             let initial_stash_size = self.stash.len();
             let mut rdr = ReaderBuilder::new().delimiter(b',').from_path(csv_path)?;
             for result in rdr.deserialize() {
-                let card: Card = result?;
-                if !self.card_exists(&card) {
-                    self.stash.push(card);
+                if let Ok(card) = result {
+                    if !self.card_exists(&card) {
+                        self.stash.push(card);
+                    } else {
+                        eprintln!("Card already exists: {:?}", card)
+                    }
                 } else {
-                    eprintln!("Card already exists: {:?}", card)
+                    eprintln!("Malformed record: {:?}", result)
                 }
             }
             Ok(self.stash.len() - initial_stash_size)
@@ -95,6 +99,10 @@ impl Deck {
 
     pub fn can_refill(&self) -> bool {
         self.queues[0].free_space() > 0 && self.stash.len() > 0
+    }
+
+    pub fn stash_size(&self) -> usize {
+        self.stash.len()
     }
 
     pub fn refill(&mut self) {
