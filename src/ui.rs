@@ -2,7 +2,7 @@ use ratatui::{
     layout::{Constraint, Direction, Layout},
     style::{Color, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, Paragraph, Wrap},
+    widgets::{Block, Paragraph, Wrap},
     Frame,
 };
 
@@ -111,7 +111,10 @@ pub fn ui(f: &mut Frame, app: &App) {
     f.render_widget(current_keys_ui(&app), footer_left);
     f.render_widget(deck_overview_ui(&app), footer_right);
 
-    match app.current_queue.and_then(|q| app.deck.queues[q].get_next_card()) {
+    match app
+        .current_queue
+        .and_then(|q| app.deck.queues[q].get_next_card())
+    {
         Some(card) => {
             f.render_widget(card_ui(card.front.to_string()), card_front);
             if app.current_screen == CurrentScreen::Checking {

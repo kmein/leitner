@@ -107,7 +107,10 @@ impl Deck {
 
     pub fn refill(&mut self) {
         while self.can_refill() {
-            let card = self.stash.pop_front().expect("The stash should have cards.");
+            let card = self
+                .stash
+                .pop_front()
+                .expect("The stash should have cards.");
             self.queues[0].cards.push_back(card);
         }
     }
