@@ -41,7 +41,7 @@ impl Queue {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Deck {
-    stash: Vec<Card>,
+    stash: VecDeque<Card>,
     done: Vec<Card>,
     pub queues: Vec<Queue>,
 }
@@ -56,7 +56,7 @@ impl Deck {
                 Queue::new(8),
                 Queue::new(14),
             ],
-            stash: Vec::new(),
+            stash: VecDeque::new(),
             done: Vec::new(),
         }
     }
@@ -83,7 +83,7 @@ impl Deck {
             for result in rdr.deserialize() {
                 if let Ok(card) = result {
                     if !self.card_exists(&card) {
-                        self.stash.push(card);
+                        self.stash.push_back(card);
                     } else {
                         eprintln!("Card already exists: {:?}", card)
                     }
@@ -107,7 +107,7 @@ impl Deck {
 
     pub fn refill(&mut self) {
         while self.can_refill() {
-            let card = self.stash.pop().expect("The stash should have cards.");
+            let card = self.stash.pop_front().expect("The stash should have cards.");
             self.queues[0].cards.push_back(card);
         }
     }
