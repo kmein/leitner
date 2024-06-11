@@ -17,8 +17,13 @@ fn header_ui(app: &App) -> Paragraph {
 }
 
 fn card_ui(string: String) -> Paragraph<'static> {
-    Paragraph::new(Line::styled(string, Style::default()).centered())
-        .block(Block::default().borders(Borders::ALL))
+    let lines: Vec<Line> = string
+        .lines()
+        .map(|line| Line::styled(line.to_string(), Style::default()).centered())
+        .collect();
+
+    Paragraph::new(lines)
+        .block(Block::bordered())
         .wrap(Wrap { trim: false })
 }
 
