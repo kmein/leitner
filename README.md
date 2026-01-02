@@ -31,8 +31,7 @@ This implementation uses 5 queues with capacities based on physical card thickne
 
 ### Prerequisites
 
-- Rust (edition 2021 or later)
-- Cargo
+- Rust toolchain (with Cargo)
 
 ### Building from Source
 
